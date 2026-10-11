@@ -1,0 +1,220 @@
+.bento-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+.bento {
+  --u: 7.5rem;
+  /* one row unit  */
+  --g: 0.5rem;
+  /* gap (matches p-1 on both sides) */
+  --glow: 168, 85, 247;
+}
+
+/* Box heights: n row-units + the gaps they span */
+.bento .card {
+  --n: 2;
+  position: relative;
+  height: calc(var(--n) * var(--u) + (var(--n) - 1) * var(--g));
+  overflow: hidden;
+  background: transparent;
+  border: 1px solid rgba(var(--glow), 0.35);
+  border-radius: 1.25rem;
+  color: var(--card-foreground);
+  /* resting glow */
+  box-shadow:
+    0 0 18px -6px rgba(var(--glow), 0.35),
+    inset 0 0 18px -12px rgba(var(--glow), 0.45);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.bento .card.bx-2 {
+  --n: 2;
+}
+
+.bento .card.bx-3 {
+  --n: 3;
+}
+
+.bento .card.bx-4 {
+  --n: 4;
+}
+
+.bento .card.bx-feature {
+  border-width: 2px;
+  border-color: var(--accent);
+  box-shadow:
+    0 0 26px -4px rgba(var(--glow), 0.5),
+    inset 0 0 22px -10px rgba(var(--glow), 0.5);
+}
+
+/* Hover glow on every card */
+.bento .card:hover {
+  transform: translateY(-3px);
+  background: rgba(var(--glow), 0.06);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 32px -2px rgba(var(--glow), 0.65),
+    inset 0 0 26px -8px rgba(var(--glow), 0.55);
+}
+
+/* Cursor-following glow inside the card */
+.bento .card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 240px at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(var(--glow), 0.3) 0%,
+    transparent 100%
+  );
+  opacity: var(--spot-opacity, 0);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cursor-following glow on the card edge */
+.bento .card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 200px at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(216, 180, 254, 0.95) 0%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: var(--spot-opacity, 0);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Image placeholder (visible until the image loads, or if it is missing) */
+.bento-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.bento-slot i {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.bento-slot span {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* The image fills the whole box */
+.bento-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.bento .card:hover .bento-img {
+  transform: scale(1.05);
+}
+
+/* Embedded in the Projects pop-up (bento-gallery.html?embed=1):
+           the bento scales to fill the frame instead of using a fixed size */
+.is-embed body {
+  background: transparent;
+}
+
+.is-embed .bento-wrap {
+  max-width: none;
+  padding: 0.75rem;
+}
+
+.is-embed .bento {
+  --u: max(2rem, calc((100vh - 5rem) / 7));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bento .card,
+  .bento .card::before,
+  .bento .card::after,
+  .bento-img {
+    transition: none;
+  }
+
+  .bento .card:hover .bento-img {
+    transform: none;
+  }
+
+  .bento .card:hover {
+    transform: none;
+  }
+}
+
+/* ── BENTO LAYOUT IN GALLERY MODAL ───────────────────────── */
+.gallery-bento-frame {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.gallery-img-area.is-bento {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 360px;
+}
+
+.gallery-img-area.is-bento .gallery-bento-frame {
+  display: block;
+}
+
+.gallery-img-area.is-bento .gallery-img,
+.gallery-img-area.is-bento .gallery-nav,
+.gallery-img-area.is-bento .gallery-indicators {
+  display: none;
+}
+
+/* ── BENTO THUMBNAIL ON THE PROJECT CARD ─────────────────── */
+.project-image.bento-thumb {
+  background: #0a0914; /* same dark panel as the pop-up */
+}
+
+.bento-thumb-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 960px;
+  height: 540px;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(var(--thumb-scale, 0.36));
+  transform-origin: center;
+}
