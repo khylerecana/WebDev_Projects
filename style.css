@@ -30,7 +30,6 @@
         inset 0 0 22px -10px rgba(var(--glow), 0.5);
 }
 
-/* Hover glow on every card */
 .bento .card:hover {
     transform: translateY(-3px);
     background: rgba(var(--glow), 0.06);
@@ -40,7 +39,6 @@
         inset 0 0 26px -8px rgba(var(--glow), 0.55);
 }
 
-/* Cursor-following glow inside the card */
 .bento .card::before {
     content: "";
     position: absolute;
@@ -56,7 +54,6 @@
     z-index: 1;
 }
 
-/* Cursor-following glow on the card edge */
 .bento .card::after {
     content: "";
     position: absolute;
@@ -81,7 +78,6 @@
     z-index: 2;
 }
 
-/* Image placeholder (visible until the image loads, or if it is missing) */
 .bento-slot {
     position: absolute;
     inset: 0;
@@ -105,7 +101,6 @@
     text-transform: uppercase;
 }
 
-/* The image fills the whole box */
 .bento-img {
     position: absolute;
     inset: 0;
@@ -119,8 +114,6 @@
     transform: scale(1.05);
 }
 
-/* Embedded in the Projects pop-up (bento-gallery.html?embed=1):
-                     the bento scales to fill the frame instead of using a fixed size */
 .is-embed body {
     background: transparent;
 }
@@ -148,7 +141,6 @@
     }
 }
 
-/* ── BENTO LAYOUT IN GALLERY MODAL ───────────────────────── */
 .gallery-bento-frame {
     display: none;
     position: absolute;
@@ -175,9 +167,8 @@
     display: none;
 }
 
-/* ── BENTO THUMBNAIL ON THE PROJECT CARD ─────────────────── */
 .project-image.bento-thumb {
-    background: #0a0914; /* same dark panel as the pop-up */
+    background: #0a0914;
 }
 
 .bento-thumb-frame {
@@ -193,7 +184,6 @@
     transform-origin: center;
 }
 
-/* ── GALLERY PAGE: BACKGROUND, TITLE, FULL WIDTH ─────────── */
 body {
     background: var(--background, #0a0914);
     color: var(--foreground, #f5f3ff);
@@ -222,14 +212,12 @@ body {
     text-shadow: 0 0 28px rgba(168, 85, 247, 0.35);
 }
 
-/* Phones: cards stack, so give each one a comfortable height */
 @media (max-width: 575.98px) {
     .bento {
         --card-h: clamp(14rem, 75vw, 26rem);
     }
 }
 
-/* The pop-up and thumbnail embeds don't need the title */
 .is-embed .bento-header {
         display: none;
 }

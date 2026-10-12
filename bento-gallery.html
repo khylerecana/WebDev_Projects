@@ -27,6 +27,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 
+    <!-- iframe -->
     <script>
         if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('is-embed');
     </script>
@@ -122,6 +123,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Row 2 -->
             <div class="col-12 col-sm-3 d-flex flex-column">
                 <div class="row g-0">
                     <div class="col-12 p-1">
@@ -219,7 +222,6 @@
     </main>
 
     <script>
-        // Cursor spotlight on bento boxes
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             document.querySelectorAll('.bento .card').forEach(card => {
                 card.addEventListener('mousemove', (e) => {
