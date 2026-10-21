@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +27,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <main class="container-fluid career-wrap" id="careers-page">
         <header class="row career-header" id="careers-header">
@@ -35,43 +37,12 @@
             </div>
         </header>
 
-        <div class="container-fluid px-0" id="careers-container">
-            <div class="row g-3 career" id="careers-row">
-                <div class="col-12 col-md-6 col-lg-4 career-col" id="careers-col">
-                    <div class="career-flip" id="careers-card" role="button" tabindex="0" aria-pressed="false">
-                        <div class="career-flip-inner">
-                            <article class="card career-card career-front" id="careers-front">
-                                <div class="card-body">
-                                    <i class="bi career-watermark" aria-hidden="true"></i>
-                                    <div class="career-top">
-                                        <span class="career-icon"><i class="bi" aria-hidden="true"></i></span>
-                                        <span class="career-track"></span>
-                                    </div>
-                                    <h3 class="career-title"></h3>
-                                    <p class="career-desc"></p>
-                                    <ul class="career-skills"></ul>
-                                    <span class="career-hint"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Flip card</span>
-                                </div>
-                            </article>
-                            <article class="card career-card career-back" id="careers-back">
-                                <div class="card-body">
-                                    <h3 class="career-title career-back-title"></h3>
-                                    <h4 class="career-label">What you'll do</h4>
-                                    <p class="career-desc career-overview"></p>
-                                    <h4 class="career-label">Tools you'll use</h4>
-                                    <ul class="career-skills career-tools"></ul>
-                                    <h4 class="career-label">Training and certifications</h4>
-                                    <ul class="career-training"></ul>
-                                    <span class="career-hint"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Flip back</span>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div id="careers-root"></div>
+
     </main>
 
+
+    <!-- JSON -->
     <script id="careers-data" type="application/json">
     {
         "careers": [
@@ -368,59 +339,78 @@
     </script>
 
     <script>
-        (function () {
-            var data = JSON.parse(document.getElementById("careers-data").textContent);
-            var row = document.getElementById("careers-row");
-            var template = document.getElementById("careers-col");
+        function escapeHtml(value) {
+            var div = document.createElement("div");
+            div.textContent = value;
+            return div.innerHTML;
+        }
 
-            function fillList(list, items) {
-                items.forEach(function (text) {
-                    var li = document.createElement("li");
-                    li.textContent = text;
-                    list.appendChild(li);
-                });
-            }
+        function listItems(items) {
+            return items.map(function (item) {
+                return "<li>" + escapeHtml(item) + "</li>";
+            }).join("");
+        }
 
-            function setFlipped(flip, flipped) {
-                flip.classList.toggle("is-flipped", flipped);
-                flip.setAttribute("aria-pressed", String(flipped));
-                flip.querySelector(".career-front").setAttribute("aria-hidden", String(flipped));
-                flip.querySelector(".career-back").setAttribute("aria-hidden", String(!flipped));
-            }
+        // Career card layout functions
+        function careerColumn(career) {
+            var id = escapeHtml(career.id);
+            var title = escapeHtml(career.title);
+            var icon = escapeHtml(career.icon);
 
-            data.careers.forEach(function (career) {
-                var col = template.cloneNode(true);
-                col.id = "col-" + career.id;
+            return `
+                        <div class="col-12 col-md-6 col-lg-4 career-col" id="col-${id}">
+                            <div class="career-flip" id="career-${id}" role="button" tabindex="0" aria-pressed="false" aria-label="${title}. Flip card for details.">
+                                <div class="career-flip-inner">
+                                    <article class="card career-card career-front" id="front-${id}" aria-hidden="false">
+                                        <div class="card-body">
+                                            <i class="bi ${icon} career-watermark" aria-hidden="true"></i>
+                                            <div class="career-top">
+                                                <span class="career-icon"><i class="bi ${icon}" aria-hidden="true"></i></span>
+                                                <span class="career-track">${escapeHtml(career.track)}</span>
+                                            </div>
+                                            <h3 class="career-title">${title}</h3>
+                                            <p class="career-desc">${escapeHtml(career.description)}</p>
+                                            <ul class="career-skills">${listItems(career.skills)}</ul>
+                                            <span class="career-hint"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Flip card</span>
+                                        </div>
+                                    </article>
+                                    <article class="card career-card career-back" id="back-${id}" aria-hidden="true">
+                                        <div class="card-body">
+                                            <h3 class="career-title career-back-title">${title}</h3>
+                                            <h4 class="career-label">What you'll do</h4>
+                                            <p class="career-desc career-overview">${escapeHtml(career.overview)}</p>
+                                            <h4 class="career-label">Tools you'll use</h4>
+                                            <ul class="career-skills career-tools">${listItems(career.tools)}</ul>
+                                            <h4 class="career-label">Training and certifications</h4>
+                                            <ul class="career-training">${listItems(career.training)}</ul>
+                                            <span class="career-hint"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Flip back</span>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </div>`;
+        }
 
-                var flip = col.querySelector(".career-flip");
-                flip.id = "career-" + career.id;
-                flip.setAttribute("aria-label", career.title + ". Flip card for details.");
+        function careerLayout(careers) {
+            return `
+                <div class="container-fluid px-0" id="careers-container">
+                    <div class="row g-3 career" id="careers-row">${careers.map(careerColumn).join("")}
+                    </div>
+                </div>`;
+        }
 
-                var front = flip.querySelector(".career-front");
-                front.id = "front-" + career.id;
-                front.querySelector(".career-icon i").classList.add(career.icon);
-                front.querySelector(".career-watermark").classList.add(career.icon);
-                front.querySelector(".career-track").textContent = career.track;
-                front.querySelector(".career-title").textContent = career.title;
-                front.querySelector(".career-desc").textContent = career.description;
-                fillList(front.querySelector(".career-skills"), career.skills);
+        function toggleFlip(flip) {
+            var flipped = !flip.classList.contains("is-flipped");
+            flip.classList.toggle("is-flipped", flipped);
+            flip.setAttribute("aria-pressed", String(flipped));
+            flip.querySelector(".career-front").setAttribute("aria-hidden", String(flipped));
+            flip.querySelector(".career-back").setAttribute("aria-hidden", String(!flipped));
+        }
 
-                var back = flip.querySelector(".career-back");
-                back.id = "back-" + career.id;
-                back.querySelector(".career-back-title").textContent = career.title;
-                back.querySelector(".career-overview").textContent = career.overview;
-                fillList(back.querySelector(".career-tools"), career.tools);
-                fillList(back.querySelector(".career-training"), career.training);
-
-                setFlipped(flip, false);
-                row.appendChild(col);
-            });
-
-            row.removeChild(template);
-
+        function bindFlip(row) {
             row.addEventListener("click", function (event) {
                 var flip = event.target.closest(".career-flip");
-                if (flip) setFlipped(flip, !flip.classList.contains("is-flipped"));
+                if (flip) toggleFlip(flip);
             });
 
             row.addEventListener("keydown", function (event) {
@@ -428,9 +418,11 @@
                 var flip = event.target.closest(".career-flip");
                 if (!flip) return;
                 event.preventDefault();
-                setFlipped(flip, !flip.classList.contains("is-flipped"));
+                toggleFlip(flip);
             });
+        }
 
+        function bindSpotlight(row) {
             row.addEventListener("pointermove", function (event) {
                 var card = event.target.closest(".card");
                 if (!card) return;
@@ -446,7 +438,21 @@
                     card.style.setProperty("--spot-opacity", "0");
                 }
             });
-        })();
+        }
+
+        function renderCareers(targetId, dataId) {
+            var target = document.getElementById(targetId || "careers-root");
+            var data = JSON.parse(document.getElementById(dataId || "careers-data").textContent);
+
+            target.innerHTML = careerLayout(data.careers);
+
+            var row = document.getElementById("careers-row");
+            bindFlip(row);
+            bindSpotlight(row);
+        }
+
+        renderCareers("careers-root", "careers-data");
     </script>
 </body>
+
 </html>
