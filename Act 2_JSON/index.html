@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khyle Recaña | IT Careers</title>
+    <meta name="description" content="Career paths for graduates of the BS Information Technology program.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/Logo.svg">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container-fluid career-wrap" id="careers-page">
+        <header class="row career-header" id="careers-header">
+            <div class="col-12">
+                <h1 class="career-page-title">Careers in Information Technology</h1>
+                <p class="career-subtitle">Paths you can take after the BS Information Technology program.</p>
+            </div>
+        </header>
+
+        <div class="container-fluid px-0" id="careers-container">
+            <div class="row g-3 career" id="careers-row">
+                <div class="col-12 col-md-6 col-lg-4 career-col" id="careers-col">
+                    <div class="career-flip" id="careers-card" role="button" tabindex="0" aria-pressed="false">
+                        <div class="career-flip-inner">
+                            <article class="card career-card career-front" id="careers-front">
+                                <div class="card-body">
+                                    <i class="bi career-watermark" aria-hidden="true"></i>
+                                    <div class="career-top">
+                                        <span class="career-icon"><i class="bi" aria-hidden="true"></i></span>
+                                        <span class="career-track"></span>
+                                    </div>
+                                    <h3 class="career-title"></h3>
+                                    <p class="career-desc"></p>
+                                    <ul class="career-skills"></ul>
+                                    <span class="career-hint"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Flip card</span>
+                                </div>
+                            </article>
+                            <article class="card career-card career-back" id="careers-back">
+                                <div class="card-body">
+                                    <h3 class="career-title career-back-title"></h3>
+                                    <h4 class="career-label">What you'll do</h4>
+                                    <p class="career-desc career-overview"></p>
+                                    <h4 class="career-label">Tools you'll use</h4>
+                                    <ul class="career-skills career-tools"></ul>
+                                    <h4 class="career-label">Training and certifications</h4>
+                                    <ul class="career-training"></ul>
+                                    <span class="career-hint"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Flip back</span>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script id="careers-data" type="application/json">
+    {
+        "careers": [
+            {
+                "id": "frontend-developer",
+                "title": "Frontend Developer",
+                "track": "Software and web",
+                "icon": "bi-window-stack",
+                "description": "Builds the interfaces people see and use, turning designs into fast, accessible web pages.",
+                "skills": [
+                    "HTML/CSS",
+                    "JavaScript",
+                    "UI/UX"
+                ],
+                "overview": "You turn designs into responsive pages, fix layout bugs across devices, and make sure sites load fast and work with a keyboard and screen reader.",
+                "tools": [
+                    "HTML",
+                    "CSS",
+                    "JavaScript",
+                    "Bootstrap",
+                    "Git",
+                    "Figma"
+                ],
+                "training": [
+                    "freeCodeCamp Responsive Web Design",
+                    "Meta Front-End Developer Professional Certificate"
+                ]
+            },
+            {
+                "id": "fullstack-developer",
+                "title": "Full-Stack Developer",
+                "track": "Software and web",
+                "icon": "bi-layers",
+                "description": "Works on both the interface and the server, from the database to the screen.",
+                "skills": [
+                    "JavaScript",
+                    "PHP",
+                    "MySQL"
+                ],
+                "overview": "You build features from end to end: the page the user sees, the server logic behind it, and the database that stores the data.",
+                "tools": [
+                    "JavaScript",
+                    "PHP",
+                    "Node.js",
+                    "MySQL",
+                    "REST APIs",
+                    "Git"
+                ],
+                "training": [
+                    "freeCodeCamp Full Stack Development",
+                    "Meta Back-End Developer Professional Certificate"
+                ]
+            },
+            {
+                "id": "mobile-app-developer",
+                "title": "Mobile App Developer",
+                "track": "Software and web",
+                "icon": "bi-phone",
+                "description": "Creates apps for Android and iOS, with a focus on performance and touch-friendly design.",
+                "skills": [
+                    "Kotlin",
+                    "Flutter",
+                    "APIs"
+                ],
+                "overview": "You design and build apps for phones, test them on real devices, and publish updates to the app stores.",
+                "tools": [
+                    "Kotlin",
+                    "Flutter",
+                    "Android Studio",
+                    "Firebase",
+                    "REST APIs"
+                ],
+                "training": [
+                    "Google Android Basics with Kotlin course",
+                    "Flutter and Dart bootcamp courses"
+                ]
+            },
+            {
+                "id": "network-administrator",
+                "title": "Network Administrator",
+                "track": "Networks and security",
+                "icon": "bi-diagram-3",
+                "description": "Sets up and maintains the networks that keep an organization connected.",
+                "skills": [
+                    "Routing",
+                    "Switching",
+                    "Troubleshooting"
+                ],
+                "overview": "You install and configure routers and switches, monitor traffic, and fix outages so people stay connected.",
+                "tools": [
+                    "Cisco devices",
+                    "Wireshark",
+                    "Packet Tracer",
+                    "DHCP and DNS",
+                    "VLANs"
+                ],
+                "training": [
+                    "Cisco CCNA",
+                    "CompTIA Network+"
+                ]
+            },
+            {
+                "id": "cybersecurity-analyst",
+                "title": "Cybersecurity Analyst",
+                "track": "Networks and security",
+                "icon": "bi-shield-lock",
+                "description": "Monitors systems for threats, finds weak points, and responds to security incidents.",
+                "skills": [
+                    "Risk assessment",
+                    "Monitoring",
+                    "Incident response"
+                ],
+                "overview": "You watch logs and alerts for suspicious activity, investigate incidents, and recommend fixes to close security gaps.",
+                "tools": [
+                    "SIEM tools",
+                    "Kali Linux",
+                    "Nmap",
+                    "Firewalls",
+                    "Wireshark"
+                ],
+                "training": [
+                    "CompTIA Security+",
+                    "ISC2 Certified in Cybersecurity (CC)"
+                ]
+            },
+            {
+                "id": "cloud-engineer",
+                "title": "Cloud Engineer",
+                "track": "Networks and security",
+                "icon": "bi-cloud",
+                "description": "Designs and manages applications and infrastructure hosted on cloud platforms.",
+                "skills": [
+                    "AWS/Azure",
+                    "Linux",
+                    "Automation"
+                ],
+                "overview": "You deploy servers and services in the cloud, automate setup, and keep costs and uptime under control.",
+                "tools": [
+                    "AWS",
+                    "Microsoft Azure",
+                    "Linux",
+                    "Docker",
+                    "Terraform"
+                ],
+                "training": [
+                    "AWS Certified Cloud Practitioner",
+                    "Microsoft Azure Fundamentals (AZ-900)"
+                ]
+            },
+            {
+                "id": "database-administrator",
+                "title": "Database Administrator",
+                "track": "Data and systems",
+                "icon": "bi-database",
+                "description": "Keeps databases organized, secure, backed up, and quick to query.",
+                "skills": [
+                    "SQL",
+                    "Backup",
+                    "Optimization"
+                ],
+                "overview": "You design tables, tune slow queries, schedule backups, and control who can see or change the data.",
+                "tools": [
+                    "MySQL",
+                    "PostgreSQL",
+                    "SQL Server",
+                    "phpMyAdmin",
+                    "Backup tools"
+                ],
+                "training": [
+                    "Microsoft Azure Data Fundamentals (DP-900)",
+                    "Oracle MySQL certifications"
+                ]
+            },
+            {
+                "id": "data-analyst",
+                "title": "Data Analyst",
+                "track": "Data and systems",
+                "icon": "bi-bar-chart-line",
+                "description": "Turns raw data into charts and reports that help teams make decisions.",
+                "skills": [
+                    "Excel",
+                    "SQL",
+                    "Visualization"
+                ],
+                "overview": "You clean data, look for patterns, and present the results in dashboards and reports that managers can act on.",
+                "tools": [
+                    "Excel",
+                    "SQL",
+                    "Power BI",
+                    "Tableau",
+                    "Python"
+                ],
+                "training": [
+                    "Google Data Analytics Certificate",
+                    "Microsoft Power BI Data Analyst (PL-300)"
+                ]
+            },
+            {
+                "id": "systems-analyst",
+                "title": "Systems Analyst",
+                "track": "Data and systems",
+                "icon": "bi-clipboard-data",
+                "description": "Studies how an organization works and recommends software that fits its needs.",
+                "skills": [
+                    "Requirements",
+                    "Documentation",
+                    "Modeling"
+                ],
+                "overview": "You interview users, write down what a system needs to do, and work with developers to make sure the final product matches.",
+                "tools": [
+                    "UML",
+                    "Flowcharts",
+                    "Jira",
+                    "Draw.io",
+                    "SQL"
+                ],
+                "training": [
+                    "IIBA Entry Certificate in Business Analysis (ECBA)",
+                    "CompTIA Project+"
+                ]
+            },
+            {
+                "id": "it-support-specialist",
+                "title": "IT Support Specialist",
+                "track": "Support and management",
+                "icon": "bi-headset",
+                "description": "Helps users fix hardware, software, and account problems, in person or remotely.",
+                "skills": [
+                    "Troubleshooting",
+                    "Hardware",
+                    "Communication"
+                ],
+                "overview": "You answer help requests, set up computers and accounts, and fix everyday hardware and software problems.",
+                "tools": [
+                    "Windows and macOS",
+                    "Active Directory",
+                    "Ticketing systems",
+                    "Remote desktop"
+                ],
+                "training": [
+                    "CompTIA A+",
+                    "Google IT Support Professional Certificate"
+                ]
+            },
+            {
+                "id": "qa-tester",
+                "title": "QA Tester",
+                "track": "Support and management",
+                "icon": "bi-bug",
+                "description": "Tests software before release to catch bugs and confirm it works as intended.",
+                "skills": [
+                    "Test cases",
+                    "Bug reports",
+                    "Automation"
+                ],
+                "overview": "You write test cases, try to break features before users do, and report bugs clearly so developers can fix them.",
+                "tools": [
+                    "Selenium",
+                    "Postman",
+                    "Jira",
+                    "TestRail",
+                    "Chrome DevTools"
+                ],
+                "training": [
+                    "ISTQB Certified Tester Foundation Level"
+                ]
+            },
+            {
+                "id": "it-project-manager",
+                "title": "IT Project Manager",
+                "track": "Support and management",
+                "icon": "bi-kanban",
+                "description": "Plans schedules, budgets, and teams to deliver technology projects on time.",
+                "skills": [
+                    "Planning",
+                    "Agile",
+                    "Leadership"
+                ],
+                "overview": "You break a project into tasks, keep the team on schedule and budget, and report progress to stakeholders.",
+                "tools": [
+                    "Jira",
+                    "Trello",
+                    "Gantt charts",
+                    "Scrum",
+                    "Slack"
+                ],
+                "training": [
+                    "PMI CAPM",
+                    "Professional Scrum Master I (PSM I)"
+                ]
+            }
+        ]
+    }
+    </script>
+
+    <script>
+        (function () {
+            var data = JSON.parse(document.getElementById("careers-data").textContent);
+            var row = document.getElementById("careers-row");
+            var template = document.getElementById("careers-col");
+
+            function fillList(list, items) {
+                items.forEach(function (text) {
+                    var li = document.createElement("li");
+                    li.textContent = text;
+                    list.appendChild(li);
+                });
+            }
+
+            function setFlipped(flip, flipped) {
+                flip.classList.toggle("is-flipped", flipped);
+                flip.setAttribute("aria-pressed", String(flipped));
+                flip.querySelector(".career-front").setAttribute("aria-hidden", String(flipped));
+                flip.querySelector(".career-back").setAttribute("aria-hidden", String(!flipped));
+            }
+
+            data.careers.forEach(function (career) {
+                var col = template.cloneNode(true);
+                col.id = "col-" + career.id;
+
+                var flip = col.querySelector(".career-flip");
+                flip.id = "career-" + career.id;
+                flip.setAttribute("aria-label", career.title + ". Flip card for details.");
+
+                var front = flip.querySelector(".career-front");
+                front.id = "front-" + career.id;
+                front.querySelector(".career-icon i").classList.add(career.icon);
+                front.querySelector(".career-watermark").classList.add(career.icon);
+                front.querySelector(".career-track").textContent = career.track;
+                front.querySelector(".career-title").textContent = career.title;
+                front.querySelector(".career-desc").textContent = career.description;
+                fillList(front.querySelector(".career-skills"), career.skills);
+
+                var back = flip.querySelector(".career-back");
+                back.id = "back-" + career.id;
+                back.querySelector(".career-back-title").textContent = career.title;
+                back.querySelector(".career-overview").textContent = career.overview;
+                fillList(back.querySelector(".career-tools"), career.tools);
+                fillList(back.querySelector(".career-training"), career.training);
+
+                setFlipped(flip, false);
+                row.appendChild(col);
+            });
+
+            row.removeChild(template);
+
+            row.addEventListener("click", function (event) {
+                var flip = event.target.closest(".career-flip");
+                if (flip) setFlipped(flip, !flip.classList.contains("is-flipped"));
+            });
+
+            row.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" && event.key !== " ") return;
+                var flip = event.target.closest(".career-flip");
+                if (!flip) return;
+                event.preventDefault();
+                setFlipped(flip, !flip.classList.contains("is-flipped"));
+            });
+
+            row.addEventListener("pointermove", function (event) {
+                var card = event.target.closest(".card");
+                if (!card) return;
+                var rect = card.getBoundingClientRect();
+                card.style.setProperty("--spot-x", event.clientX - rect.left + "px");
+                card.style.setProperty("--spot-y", event.clientY - rect.top + "px");
+                card.style.setProperty("--spot-opacity", "1");
+            });
+
+            row.addEventListener("pointerout", function (event) {
+                var card = event.target.closest(".card");
+                if (card && !card.contains(event.relatedTarget)) {
+                    card.style.setProperty("--spot-opacity", "0");
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
