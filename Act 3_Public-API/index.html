@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorant Codex</title>
+    <meta name="description" content="Search Valorant agents and skin bundles using the public valorant-api.com API.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/Logo.svg">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="page-bg" id="pageBg" aria-hidden="true"></div>
+    <main class="container py-4 py-md-5 is-home position-relative" id="codex">
+        <button class="btn btn-sm back-btn" id="back" type="button">&larr; Back to home</button>
+        <div class="brand">
+            <div class="eyebrow"><span></span>AGENT &amp; SKIN DATABASE<span></span></div>
+            <div class="logo" id="logo" role="button" tabindex="0" title="Back to home"><span class="l1">VALORANT</span>
+                <b>//</b> <span class="l2">CODEX</span>
+            </div>
+            <div class="divider" aria-hidden="true"><i></i></div>
+            <p class="tagline">Search an agent or a skin bundle.</p>
+            <div class="stats" id="stats"></div>
+        </div>
+
+        <div class="search-wrap">
+            <input class="search" id="search" type="search" placeholder="Try Fade or Kuronami" autocomplete="off"
+                aria-label="Search agents or skin bundles">
+            <div class="suggest" id="suggest" hidden></div>
+        </div>
+        <div class="chips" id="chips">
+            <button class="chip on" data-f="all">Home</button>
+            <button class="chip" data-f="agent">Agents</button>
+            <button class="chip" data-f="bundle">Skin bundles</button>
+        </div>
+        <section id="result">
+            <p class="state">Loading Valorant data…</p>
+        </section>
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    <script>
+        var API = "https://valorant-api.com/v1/";
+        var S = { agents: [], bundles: [], themes: [], skins: [], tiers: {}, filter: "all" };
+        var items = [], skinList = [], variants = [], pool = [];
+        var $ = function (s) { return document.querySelector(s); };
+        var box = $("#search"), sug = $("#suggest"), res = $("#result"), main = $("#codex");
+
+        var SLOT = { Grenade: "C", Ability1: "Q", Ability2: "E", Ultimate: "X", Passive: "P" };
+        var ORDER = ["Grenade", "Ability1", "Ability2", "Ultimate", "Passive"];
+        var COUNTRY = { turkish: "Turkey", korean: "South Korea", british: "United Kingdom", english: "England", scottish: "Scotland", irish: "Ireland", american: "United States", chinese: "China", indian: "India", russian: "Russia", moroccan: "Morocco", mexican: "Mexico", german: "Germany", swedish: "Sweden", brazilian: "Brazil", australian: "Australia", japanese: "Japan", ghanaian: "Ghana", french: "France", filipino: "Philippines", filipina: "Philippines", norwegian: "Norway", colombian: "Colombia", thai: "Thailand", senegalese: "Senegal", nigerian: "Nigeria", canadian: "Canada", italian: "Italy", spanish: "Spain", egyptian: "Egypt", argentine: "Argentina", ukrainian: "Ukraine", polish: "Poland", dutch: "Netherlands", kenyan: "Kenya" };
+
+        function esc(t) {
+            return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+        function norm(t) {
+            return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+                .replace(/\bbundle\b/g, "").replace(/[^a-z0-9]/g, "");
+        }
+        function get(path) {
+            return fetch(API + path).then(function (r) {
+                if (!r.ok) throw new Error("HTTP " + r.status);
+                return r.json();
+            }).then(function (j) { return j.data; });
+        }
+        function country(desc) {
+            var m = (desc || "").match(/(?:home country of|hailing from|hails from|native of)\s+([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)/);
+            if (m) return m[1];
+            var words = (desc || "").toLowerCase().match(/[a-z]+/g) || [];
+            for (var i = 0; i < words.length; i++) if (COUNTRY[words[i]]) return COUNTRY[words[i]];
+            return "Not stated";
+        }
+        function clean(t) { return String(t || "").replace(/<[^>]*>/g, ""); }
+        function hex(c) { return "#" + String(c || "000000").slice(0, 6); }
+
+        /* ---------- Loading ---------- */
+        function init() {
+            res.innerHTML = '<p class="state">Loading Valorant data…</p>';
+            Promise.all([
+                get("agents?isPlayableCharacter=true"), get("bundles"), get("themes"),
+                get("weapons/skins"), get("contenttiers")
+            ]).then(function (d) {
+                S.agents = d[0].sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
+                S.bundles = d[1].filter(function (b) { return b.displayName; });
+                S.themes = d[2]; S.skins = d[3];
+                d[4].forEach(function (t) { S.tiers[t.uuid] = t; });
+                items = S.agents.map(function (a) { return { type: "agent", name: a.displayName, key: norm(a.displayName), icon: a.displayIcon, ref: a }; })
+                    .concat(S.bundles.map(function (b) { return { type: "bundle", name: b.displayName, key: norm(b.displayName), icon: b.displayIcon, ref: b }; }));
+                items.forEach(function (it, i) { it.id = i; });
+                pool = [];
+                S.skins.forEach(function (s) {
+                    if (/^(standard|random)/i.test(s.displayName)) return;
+                    (s.levels || []).concat(s.chromas || []).forEach(function (v) {
+                        if (v.streamedVideo) pool.push({ skin: s, video: v.streamedVideo, poster: v.displayIcon || v.fullRender || s.displayIcon });
+                    });
+                });
+                var skinCount = S.skins.filter(function (s) { return !/^(standard|random)/i.test(s.displayName); }).length;
+                $("#stats").innerHTML = [[S.agents.length, "Agents"], [S.bundles.length, "Bundles"], [skinCount, "Skins"]].map(function (x) {
+                    return '<span><b>' + x[0] + '</b>' + x[1] + '</span>';
+                }).join("");
+                home();
+            }).catch(function () {
+                res.innerHTML = '<p class="state">Could not load data from valorant-api.com.<br><button class="tag" id="retry">Try again</button></p>';
+                $("#retry").onclick = init;
+            });
+        }
+
+        function pickRandom(n) {
+            var a = pool.slice(), out = [], seen = {};
+            for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+            a.forEach(function (p) { if (out.length < n && !seen[p.skin.uuid]) { seen[p.skin.uuid] = 1; out.push(p); } });
+            return out;
+        }
+        function bundleIdFor(skin) {
+            var th = S.themes.find(function (t) { return t.uuid === skin.themeUuid; });
+            if (!th) return -1;
+            var it = items.find(function (i) { return i.type === "bundle" && i.key === norm(th.displayName); });
+            return it ? it.id : -1;
+        }
+        function setFilter(f) {
+            S.filter = f;
+            document.querySelectorAll("#chips .chip").forEach(function (x) { x.classList.toggle("on", x.dataset.f === f); });
+        }
+        function listAll(type) {
+            var rows = items.filter(function (i) { return i.type === type && i.icon; });
+            res.innerHTML = '<h3 class="sec text-center"><b>//</b> ' + (type === "agent" ? "AGENTS" : "SKIN BUNDLES") + ' (' + rows.length + ')</h3><div class="row g-2">' +
+                rows.map(function (i) {
+                    return '<div class="col-4 col-sm-3 col-md-2"><button class="pick w-100 h-100" data-id="' + i.id + '"><img src="' + esc(i.icon) + '" alt="" loading="lazy">' + esc(i.name) + '</button></div>';
+                }).join("") + '</div>';
+        }
+        function home() {
+            main.classList.add("is-home");
+            setPageBg("");
+            if (S.filter === "agent" || S.filter === "bundle") return listAll(S.filter);
+            var picks = pickRandom(3);
+            res.innerHTML = '<div class="d-flex justify-content-center align-items-center gap-3 mb-3"><h3 class="sec m-0"><b>//</b> RANDOM SKIN PREVIEWS</h3>' +
+                '<button class="tag" id="shuffle">Shuffle</button></div><div class="row g-3 justify-content-center">' +
+                picks.map(function (p) {
+                    var b = bundleIdFor(p.skin);
+                    return '<div class="col-12 col-md-4"><div class="vcard"><div class="media"><video muted loop autoplay playsinline preload="metadata" poster="' + esc(p.poster) + '" src="' + esc(p.video) + '"></video></div>' +
+                        '<div class="vfoot"><span>' + esc(p.skin.displayName) + '</span><span class="d-flex gap-2"><button class="tag" data-snd>Sound off</button>' +
+                        (b > -1 ? '<button class="tag" data-id="' + b + '">View bundle</button>' : "") + '</span></div></div></div>';
+                }).join("") + '</div>';
+        }
+        function goHome() {
+            box.value = ""; sug.hidden = true;
+            home();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        /* ---------- Search ---------- */
+        function suggest() {
+            var q = norm(box.value);
+            if (!q) { sug.hidden = true; return []; }
+            var f = items.filter(function (i) { return (S.filter === "all" || S.filter === i.type) && i.key.indexOf(q) > -1; })
+                .sort(function (a, b) { return (b.key.indexOf(q) === 0) - (a.key.indexOf(q) === 0); }).slice(0, 8);
+            sug.innerHTML = f.length ? f.map(function (i) {
+                return '<button type="button" data-id="' + i.id + '">' + (i.icon ? '<img src="' + esc(i.icon) + '" alt="">' : "") +
+                    esc(i.name) + '<span class="badge">' + (i.type === "agent" ? "Agent" : "Bundle") + '</span></button>';
+            }).join("") : '<p class="none">No agent or bundle found</p>';
+            sug.hidden = false;
+            return f;
+        }
+        function show(item) {
+            setPageBg(item.type === "agent" ? item.ref.background : "");
+            box.value = item.name; sug.hidden = true;
+            main.classList.remove("is-home");
+            if (item.type === "agent") res.innerHTML = agentView(item.ref);
+            else { res.innerHTML = bundleView(item.ref); if (skinList.length) showSkin(skinList[0].uuid); }
+            res.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        /* ---------- Agent ---------- */
+        var AGENT_VIDEOS = {};
+        function bannerMedia(a) {
+            var v = AGENT_VIDEOS[a.displayName];
+            return v
+                ? '<video class="bg-video" autoplay muted loop playsinline src="' + esc(v) + '"></video>'
+                : '<div class="bg-anim" aria-hidden="true"></div>';
+        }
+        function setPageBg(url) {
+            var pg = $("#pageBg");
+            if (url) { pg.style.backgroundImage = 'url("' + url + '")'; pg.classList.add("on"); }
+            else pg.classList.remove("on");
+        }
+        function agentView(a) {
+            var cols = (a.backgroundGradientColors || []).map(hex);
+            var grad = cols.length > 1 ? "linear-gradient(135deg," + cols.join(",") + ")" : "";
+            var abil = (a.abilities || []).slice().sort(function (x, y) { return ORDER.indexOf(x.slot) - ORDER.indexOf(y.slot); })
+                .filter(function (x) { return x.displayName; });
+            var style = (grad ? "--g:" + grad + ";" : "") + (cols[0] ? "--c1:" + cols[0] + ";" : "") + (cols[2] || cols[1] ? "--c2:" + (cols[2] || cols[1]) + ";" : "");
+            return '<article class="agent"><div class="banner"' + (style ? ' style="' + style + '"' : "") + '>' +
+                bannerMedia(a) +
+                '<div class="bn"><h2 class="name">' + esc(a.displayName) + '</h2>' +
+                '<div class="d-flex flex-wrap align-items-center gap-2">' +
+                (a.role ? '<span class="pill">' + (a.role.displayIcon ? '<img src="' + esc(a.role.displayIcon) + '" alt="">' : "") + esc(a.role.displayName) + '</span>' : "") +
+                '<span class="meta mt-2">Origin: ' + esc(country(clean(a.description))) + '</span>' +
+                '<span class="meta mt-2">Codename: ' + esc(a.developerName || "Unknown") + '</span></div>' +
+                '<p class="bn-desc">' + esc(clean(a.description)) + '</p>' +
+                '<div class="bn-abil">' + abil.map(function (x) {
+                    return x.displayIcon ? '<span class="bn-ab' + (x.slot === "Ultimate" ? " ult" : "") + '" title="' + esc(x.displayName) + '"><img src="' + esc(x.displayIcon) + '" alt="' + esc(x.displayName) + '"><i>' + esc(SLOT[x.slot] || "") + '</i></span>' : "";
+                }).join("") + '</div></div>' +
+                '<img class="portrait" src="' + esc(a.fullPortrait || a.bustPortrait || a.displayIcon) + '" alt="' + esc(a.displayName) + '"></div>' +
+                '<h3 class="sec"><b>//</b> ABILITIES</h3><div class="row g-3">' +
+                abil.map(function (x) {
+                    return '<div class="col-12 col-md-6 col-xl-3"><div class="ab h-100' + (x.slot === "Ultimate" ? " ult" : "") + '"><header>' +
+                        (x.displayIcon ? '<img src="' + esc(x.displayIcon) + '" alt="">' : "") + '<strong>' + esc(x.displayName) + '</strong>' +
+                        '<span class="key">' + (SLOT[x.slot] || "") + '</span></header><p>' + esc(clean(x.description)) + '</p></div></div>';
+                }).join("") + '</div></article>';
+        }
+
+        /* ---------- Bundle ---------- */
+        function bundleSkins(b) {
+            var n = norm(b.displayName), list = [];
+            var th = S.themes.find(function (t) { return norm(t.displayName) === n; }) ||
+                S.themes.find(function (t) { return n && norm(t.displayName).indexOf(n) === 0; });
+            if (th) list = S.skins.filter(function (s) { return s.themeUuid === th.uuid; });
+            if (!list.length && n.length > 3) list = S.skins.filter(function (s) { return norm(s.displayName).indexOf(n) > -1; });
+            return list;
+        }
+        function skinImg(s) {
+            return s.displayIcon || (s.levels[0] && s.levels[0].displayIcon) || (s.chromas[0] && (s.chromas[0].fullRender || s.chromas[0].displayIcon)) || "";
+        }
+        function bundleView(b) {
+            skinList = bundleSkins(b);
+            var promo = b.displayIcon2 || b.displayIcon;
+            return '<article class="bundle"><div class="bhero"><div><small>SKIN BUNDLE</small><h2 class="name">' + esc(b.displayName) + '</h2>' +
+                (b.displayNameSubText ? '<p class="desc">' + esc(clean(b.displayNameSubText)) + '</p>' : "") +
+                (b.description ? '<p class="desc">' + esc(clean(b.description)) + '</p>' : "") + '</div>' +
+                (promo ? '<img src="' + esc(promo) + '" alt="' + esc(b.displayName) + '">' : "") + '</div>' +
+                '<h3 class="sec"><b>//</b> INCLUDED SKINS (' + skinList.length + ')</h3>' +
+                (skinList.length ? '<div class="row g-2">' + skinList.map(function (s) {
+                    var t = S.tiers[s.contentTierUuid];
+                    return '<div class="col-6 col-md-4 col-lg-3"><button class="skin w-100 h-100" data-s="' + esc(s.uuid) + '"><img src="' + esc(skinImg(s)) + '" alt="" loading="lazy">' +
+                        '<span class="gem"' + (t ? ' style="background:' + hex(t.highlightColor) + '"' : "") + '></span>' + esc(s.displayName) + '</button></div>';
+                }).join("") + '</div><div id="detail"></div>' : '<p class="state">No skins were found for this bundle.</p>') + '</article>';
+        }
+        function levelName(item) {
+            return String(item || "").replace(/^.*::/, "").replace(/([a-z])([A-Z])/g, "$1 $2");
+        }
+        function showSkin(uuid) {
+            var s = skinList.find(function (x) { return x.uuid === uuid; });
+            if (!s) return;
+            document.querySelectorAll(".skin").forEach(function (el) { el.classList.toggle("sel", el.dataset.s === uuid); });
+            variants = s.levels.map(function (l, i) {
+                return { kind: "level", label: "Level " + (i + 1) + (l.levelItem ? " · " + levelName(l.levelItem) : ""), video: l.streamedVideo, img: l.displayIcon };
+            }).concat(s.chromas.map(function (c) {
+                return { kind: "chroma", label: (c.displayName || "Variant").replace(s.displayName, "").trim() || "Default", video: c.streamedVideo, img: c.fullRender || c.displayIcon, swatch: c.swatch };
+            }));
+            var start = variants.map(function (v) { return v.kind === "level" && v.video ? 1 : 0; }).lastIndexOf(1);
+            if (start < 0) start = variants.findIndex(function (v) { return v.video; });
+            var t = S.tiers[s.contentTierUuid];
+            $("#detail").innerHTML = '<div class="detail"><div class="row g-3"><div class="col-lg-7"><div class="media" id="media"></div><p class="hint">Preview videos play with the skin\'s sound effects.</p></div><div class="col-lg-5">' +
+                '<h3>' + esc(s.displayName) + '</h3><span class="desc">' + esc(t ? t.displayName : "") + '</span>' +
+                '<p class="lbl">Upgrade levels</p><div class="vars">' + variants.map(function (v, i) {
+                    return v.kind === "level" ? '<button class="var" data-v="' + i + '">' + esc(v.label) + '</button>' : "";
+                }).join("") + '</div><p class="lbl">Color variants</p><div class="vars">' + variants.map(function (v, i) {
+                    return v.kind === "chroma" ? '<button class="sw" data-v="' + i + '" title="' + esc(v.label) + '">' + (v.swatch ? '<img src="' + esc(v.swatch) + '" alt="' + esc(v.label) + '">' : esc(v.label)) + '</button>' : "";
+                }).join("") + '</div></div></div></div>';
+            showVariant(Math.max(start, 0));
+        }
+        function showVariant(i) {
+            var v = variants[i];
+            if (!v) return;
+            document.querySelectorAll("#detail [data-v]").forEach(function (el) { el.classList.toggle("on", Number(el.dataset.v) === i); });
+            $("#media").innerHTML = v.video
+                ? '<video controls playsinline preload="metadata" poster="' + esc(v.img) + '" src="' + esc(v.video) + '"></video>'
+                : (v.img ? '<img src="' + esc(v.img) + '" alt="' + esc(v.label) + '">' : '<p class="state">No preview available</p>');
+        }
+
+        /* ---------- Events ---------- */
+        box.addEventListener("input", function () { if (!box.value) goHome(); else suggest(); });
+        box.addEventListener("search", function () { if (!box.value) goHome(); });
+        $("#logo").addEventListener("click", logoHome);
+        $("#logo").addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); logoHome(); } });
+        box.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") { var f = suggest(); if (f[0]) show(f[0]); }
+            if (e.key === "Escape") sug.hidden = true;
+        });
+        function logoHome() { setFilter("all"); goHome(); }
+        $("#chips").addEventListener("click", function (e) {
+            var c = e.target.closest(".chip");
+            if (!c) return;
+            setFilter(c.dataset.f);
+            if (box.value) suggest(); else home();
+        });
+        $("#back").addEventListener("click", logoHome);
+        document.addEventListener("click", function (e) {
+            if (e.target.closest("#shuffle")) return home();
+            var snd = e.target.closest("[data-snd]");
+            if (snd) {
+                var vid = snd.closest(".vcard").querySelector("video");
+                vid.muted = !vid.muted;
+                snd.textContent = vid.muted ? "Sound off" : "Sound on";
+                return;
+            }
+            var pick = e.target.closest("[data-id]");
+            if (pick && items[pick.dataset.id]) return show(items[pick.dataset.id]);
+            var sk = e.target.closest(".skin");
+            if (sk) return showSkin(sk.dataset.s);
+            var v = e.target.closest("#detail [data-v]");
+            if (v) return showVariant(Number(v.dataset.v));
+            if (!e.target.closest(".search-wrap")) sug.hidden = true;
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
