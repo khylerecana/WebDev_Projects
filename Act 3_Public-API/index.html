@@ -13,6 +13,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -29,15 +32,20 @@
     <div class="page-bg" id="pageBg" aria-hidden="true"></div>
     <main class="container py-4 py-md-5 is-home position-relative" id="codex">
         <button class="btn btn-sm back-btn" id="back" type="button">&larr; Back to home</button>
-        <div class="brand">
-            <div class="eyebrow"><span></span>AGENT &amp; SKIN DATABASE<span></span></div>
-            <div class="logo" id="logo" role="button" tabindex="0" title="Back to home"><span class="l1">VALORANT</span>
-                <b>//</b> <span class="l2">CODEX</span>
+        <div class="hero">
+            <div class="hero-left">
+                <div class="brand">
+                    <div class="eyebrow"><span></span>AGENT &amp; SKIN DATABASE<span></span></div>
+                    <div class="logo" id="logo" role="button" tabindex="0" title="Back to home"><span
+                            class="l1">VALORANT</span> <span class="l2">CODEX</span></div>
+                    <div class="divider" aria-hidden="true"><i></i></div>
+                    <p class="tagline">Search an agent or a skin bundle.</p>
+                    <div class="stats" id="stats"></div>
+                </div>
             </div>
-            <div class="divider" aria-hidden="true"><i></i></div>
-            <p class="tagline">Search an agent or a skin bundle.</p>
-            <div class="stats" id="stats"></div>
+            <div class="stage" id="stage"></div>
         </div>
+        <div class="ticker" id="ticker" aria-hidden="true"></div>
 
         <div class="search-wrap">
             <input class="search" id="search" type="search" placeholder="Try Fade or Kuronami" autocomplete="off"
@@ -164,6 +172,7 @@
                 $("#stats").innerHTML = [[S.agents.length, "Agents"], [S.bundles.length, "Bundles"], [skinCount, "Skins"]].map(function (x) {
                     return '<span><b>' + x[0] + '</b>' + x[1] + '</span>';
                 }).join("");
+                buildSpotlight();
                 home();
             } catch (error) {
                 res.innerHTML = '<p class="state">Could not load data from valorant-api.com.<br><button class="tag" onclick="init()">Try again</button></p>';
@@ -182,6 +191,55 @@
             var it = items.find(function (i) { return i.type === "bundle" && i.key === norm(th.displayName); });
             return it ? it.id : -1;
         }
+        /* ---------- Home spotlight ---------- */
+        var spotTimer = null;
+        var spotIndex = 0;
+
+        function buildSpotlight() {
+            var elStage = document.getElementById("stage");
+            var elTicker = document.getElementById("ticker");
+            var order = [];
+            for (var i = 0; i < S.agents.length; i++) {
+                order.push(i);
+            }
+            order.sort(function () { return Math.random() - 0.5; });
+
+            var html = "";
+            for (var n = 0; n < 6 && n < order.length; n++) {
+                var a = S.agents[order[n]];
+                var colorList = a.backgroundGradientColors || [];
+                var cols = [];
+                for (var c = 0; c < colorList.length; c++) {
+                    cols.push(hex(colorList[c]));
+                }
+                var grad = cols.length > 1 ? "linear-gradient(150deg," + cols.join(",") + ")" : "";
+                html += '<div class="spot' + (n == 0 ? " on" : "") + '"' + (grad ? ' style="--g:' + grad + '"' : "") + ' data-id="' + order[n] + '">';
+                html += '<div class="big">' + esc(a.displayName) + '</div>';
+                html += '<img class="pt" src="' + esc(a.fullPortrait || a.bustPortrait || a.displayIcon) + '" alt="' + esc(a.displayName) + '">';
+                html += '<div class="nm">' + (a.role ? '<i>' + esc(a.role.displayName) + '</i>' : "") + esc(a.displayName) + '</div></div>';
+            }
+            elStage.innerHTML = html;
+
+            var names = "";
+            for (var j = 0; j < S.agents.length; j++) {
+                names += '<span>' + esc(S.agents[j].displayName) + ' //</span>';
+            }
+            elTicker.innerHTML = '<div class="track">' + names + names + '</div>';
+
+            spotIndex = 0;
+            clearInterval(spotTimer);
+            spotTimer = setInterval(nextSpot, 3500);
+        }
+
+        function nextSpot() {
+            if (!main.classList.contains("is-home")) return;
+            var slides = document.getElementsByClassName("spot");
+            if (slides.length == 0) return;
+            slides[spotIndex].classList.remove("on");
+            spotIndex = (spotIndex + 1) % slides.length;
+            slides[spotIndex].classList.add("on");
+        }
+
         function setFilter(f) {
             S.filter = f;
             page = 1;
