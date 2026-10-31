@@ -31,7 +31,8 @@
 <body>
     <div class="page-bg" id="pageBg" aria-hidden="true"></div>
     <main class="container py-4 py-md-5 is-home position-relative" id="codex">
-        <button class="btn btn-sm back-btn" id="back" type="button">&larr; Back to home</button>
+        <button class="btn btn-sm back-btn" id="back" type="button" aria-label="Back to home"
+            title="Back to home">&larr;</button>
         <div class="hero">
             <div class="hero-left">
                 <div class="brand">
@@ -353,24 +354,48 @@
             var abil = (a.abilities || []).slice().sort(function (x, y) { return ORDER.indexOf(x.slot) - ORDER.indexOf(y.slot); })
                 .filter(function (x) { return x.displayName; });
             var style = (grad ? "--g:" + grad + ";" : "") + (cols[0] ? "--c1:" + cols[0] + ";" : "") + (cols[2] || cols[1] ? "--c2:" + (cols[2] || cols[1]) + ";" : "");
-            return '<article class="agent"><div class="banner"' + (style ? ' style="' + style + '"' : "") + '>' +
-                bannerMedia(a) +
-                '<div class="bn"><h2 class="name">' + esc(a.displayName) + '</h2>' +
-                '<div class="d-flex flex-wrap align-items-center gap-2">' +
-                (a.role ? '<span class="pill">' + (a.role.displayIcon ? '<img src="' + esc(a.role.displayIcon) + '" alt="">' : "") + esc(a.role.displayName) + '</span>' : "") +
-                '<span class="meta mt-2">Origin: ' + esc(country(clean(a.description))) + '</span>' +
-                '<span class="meta mt-2">Codename: ' + esc(a.developerName || "Unknown") + '</span></div>' +
-                '<p class="bn-desc">' + esc(clean(a.description)) + '</p>' +
-                '<div class="bn-abil">' + abil.map(function (x) {
-                    return x.displayIcon ? '<span class="bn-ab' + (x.slot === "Ultimate" ? " ult" : "") + '" title="' + esc(x.displayName) + '"><img src="' + esc(x.displayIcon) + '" alt="' + esc(x.displayName) + '"><i>' + esc(SLOT[x.slot] || "") + '</i></span>' : "";
-                }).join("") + '</div></div>' +
-                '<img class="portrait" src="' + esc(a.fullPortrait || a.bustPortrait || a.displayIcon) + '" alt="' + esc(a.displayName) + '"></div>' +
-                '<h3 class="sec"><b>//</b> ABILITIES</h3><div class="row g-3">' +
-                abil.map(function (x) {
-                    return '<div class="col-12 col-md-6 col-xl-3"><div class="ab h-100' + (x.slot === "Ultimate" ? " ult" : "") + '"><header>' +
-                        (x.displayIcon ? '<img src="' + esc(x.displayIcon) + '" alt="">' : "") + '<strong>' + esc(x.displayName) + '</strong>' +
-                        '<span class="key">' + (SLOT[x.slot] || "") + '</span></header><p>' + esc(clean(x.description)) + '</p></div></div>';
-                }).join("") + '</div></article>';
+
+            var html = '<article class="agent"><div class="banner"' + (style ? ' style="' + style + '"' : "") + '>';
+            html += bannerMedia(a);
+            html += '<div class="bn">';
+            html += '<h2 class="name">' + esc(a.displayName) + '</h2>';
+
+            html += '<div class="d-flex flex-wrap align-items-center gap-2">';
+            if (a.role) {
+                html += '<span class="pill">' + (a.role.displayIcon ? '<img src="' + esc(a.role.displayIcon) + '" alt="">' : "") + esc(a.role.displayName) + '</span>';
+            }
+            html += '<span class="meta mt-2">Origin: ' + esc(country(clean(a.description))) + '</span>';
+            html += '<span class="meta mt-2">Codename: ' + esc(a.developerName || "Unknown") + '</span>';
+            html += '</div>';
+
+            html += '<p class="bn-desc">' + esc(clean(a.description)) + '</p>';
+            html += '<button type="button" class="more" onclick="toggleDesc(this)">Read more</button>';
+
+            html += '<div class="bn-abil">';
+            abil.forEach(function (x) {
+                if (!x.displayIcon) return;
+                html += '<span class="bn-ab' + (x.slot === "Ultimate" ? " ult" : "") + '" title="' + esc(x.displayName) + '"><img src="' + esc(x.displayIcon) + '" alt="' + esc(x.displayName) + '"><i>' + esc(SLOT[x.slot] || "") + '</i></span>';
+            });
+            html += '</div>';
+            html += '</div>'; // closes .bn
+
+            html += '<img class="portrait" src="' + esc(a.fullPortrait || a.bustPortrait || a.displayIcon) + '" alt="' + esc(a.displayName) + '">';
+            html += '</div>'; // closes .banner
+
+            html += '<h3 class="sec"><b>//</b> ABILITIES</h3><div class="row g-3">';
+            abil.forEach(function (x) {
+                html += '<div class="col-12 col-md-6 col-xl-3"><div class="ab h-100' + (x.slot === "Ultimate" ? " ult" : "") + '"><header>' +
+                    (x.displayIcon ? '<img src="' + esc(x.displayIcon) + '" alt="">' : "") + '<strong>' + esc(x.displayName) + '</strong>' +
+                    '<span class="key">' + (SLOT[x.slot] || "") + '</span></header><p>' + esc(clean(x.description)) + '</p></div></div>';
+            });
+            html += '</div></article>';
+            return html;
+        }
+
+        function toggleDesc(button) {
+            var desc = button.previousElementSibling;
+            desc.classList.toggle("open");
+            button.innerHTML = desc.classList.contains("open") ? "Show less" : "Read more";
         }
 
         /* ---------- Bundle ---------- */

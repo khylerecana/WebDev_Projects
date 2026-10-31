@@ -244,12 +244,18 @@ img {
   top: 1rem;
   right: 1rem;
   z-index: 5;
-  padding: 0.4rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
   color: var(--text);
   background: var(--panel);
   border: 1px solid var(--violet);
-  border-radius: 999px;
-  font-size: 0.85rem;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 .back-btn:hover {
   color: #fff;
@@ -708,6 +714,9 @@ h2.name {
   transform: translateX(-120%);
   animation: bg-sweep 6s ease-in-out infinite;
 }
+.more {
+  display: none;
+}
 
 /* Agent Page: Data Inside the Banner */
 .meta {
@@ -949,15 +958,95 @@ h2.name {
   .is-home .stage {
     height: 320px;
   }
+  .is-home .hero .brand {
+    text-align: center;
+  }
+  .is-home .hero .eyebrow,
+  .is-home .hero .divider,
+  .is-home .hero .stats {
+    justify-content: center;
+  }
+  .is-home .hero .divider::before {
+    display: block;
+  }
 }
 @media (max-width: 700px) {
+  #codex:not(.is-home) .brand {
+    padding-right: 3rem;
+  }
+
+  /* Agent banner: image on top, details below */
+  .banner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 210px;
+    align-items: start;
+    min-height: 0;
+  }
+  .banner::after {
+    content: "";
+    grid-area: 1 / 1;
+    z-index: 1;
+    background: linear-gradient(0deg, rgba(11, 7, 16, 0.85), transparent 55%);
+    pointer-events: none;
+  }
   .banner .bn {
-    width: 100%;
+    display: contents;
+  }
+  .banner .bn > * {
+    z-index: 2;
   }
   .banner .portrait {
-    opacity: 0.35;
-    max-width: 80%;
+    z-index: 1;
   }
+  .banner .portrait {
+    position: static;
+    grid-area: 1 / 1;
+    justify-self: center;
+    align-self: stretch;
+    width: auto;
+    max-width: 100%;
+    height: 210px;
+    opacity: 1;
+    animation: none;
+  }
+  .banner h2.name {
+    grid-area: 1 / 1;
+    align-self: end;
+    z-index: 2;
+    padding: 0 1rem 0.8rem;
+    font-size: 2.4rem;
+  }
+  .banner .bn > .d-flex {
+    padding: 0.8rem 1rem 0;
+  }
+  .bn-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    max-width: none;
+    margin: 0.7rem 1rem 0.2rem;
+    font-size: 0.9rem;
+  }
+  .bn-desc.open {
+    display: block;
+  }
+  .more {
+    display: inline-block;
+    justify-self: start;
+    margin: 0 1rem;
+    padding: 0;
+    color: var(--violet-hi);
+    background: none;
+    border: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .banner .bn > .bn-abil {
+    padding: 0.7rem 1rem 1.1rem;
+  }
+
   .bhero img {
     display: none;
   }
