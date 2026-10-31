@@ -68,7 +68,43 @@
 
         var SLOT = { Grenade: "C", Ability1: "Q", Ability2: "E", Ultimate: "X", Passive: "P" };
         var ORDER = ["Grenade", "Ability1", "Ability2", "Ultimate", "Passive"];
-        var COUNTRY = { turkish: "Turkey", korean: "South Korea", british: "United Kingdom", english: "England", scottish: "Scotland", irish: "Ireland", american: "United States", chinese: "China", indian: "India", russian: "Russia", moroccan: "Morocco", mexican: "Mexico", german: "Germany", swedish: "Sweden", brazilian: "Brazil", australian: "Australia", japanese: "Japan", ghanaian: "Ghana", french: "France", filipino: "Philippines", filipina: "Philippines", norwegian: "Norway", colombian: "Colombia", thai: "Thailand", senegalese: "Senegal", nigerian: "Nigeria", canadian: "Canada", italian: "Italy", spanish: "Spain", egyptian: "Egypt", argentine: "Argentina", ukrainian: "Ukraine", polish: "Poland", dutch: "Netherlands", kenyan: "Kenya" };
+        var COUNTRY = {
+            turkish: "Turkey",
+            korean: "South Korea",
+            british: "United Kingdom",
+            english: "England",
+            scottish: "Scotland",
+            irish: "Ireland",
+            american: "United States",
+            chinese: "China",
+            indian: "India",
+            russian: "Russia",
+            moroccan: "Morocco",
+            mexican: "Mexico",
+            german: "Germany",
+            swedish: "Sweden",
+            brazilian: "Brazil",
+            australian: "Australia",
+            japanese: "Japan",
+            ghanaian: "Ghana",
+            french: "France",
+            filipino: "Philippines",
+            filipina: "Philippines",
+            norwegian: "Norway",
+            colombian: "Colombia",
+            thai: "Thailand",
+            senegalese: "Senegal",
+            nigerian: "Nigeria",
+            canadian: "Canada",
+            italian: "Italy",
+            spanish: "Spain",
+            egyptian: "Egypt",
+            argentine: "Argentina",
+            ukrainian: "Ukraine",
+            polish: "Poland",
+            dutch: "Netherlands",
+            kenyan: "Kenya"
+        };
 
         function esc(t) {
             return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) {
@@ -79,12 +115,16 @@
             return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
                 .replace(/\bbundle\b/g, "").replace(/[^a-z0-9]/g, "");
         }
-        function get(path) {
-            return fetch(API + path).then(function (r) {
-                if (!r.ok) throw new Error("HTTP " + r.status);
-                return r.json();
-            }).then(function (j) { return j.data; });
+        const get = async (path) => {
+            var response = await fetch(API + path);
+            var json = await response.json();
+            return json.data;
         }
+
+        function loadingHtml(text) {
+            return '<div class="text-center py-5"><div class="spinner-border text-danger" role="status"><span class="visually-hidden">Loading...</span></div><div class="mt-3 text-secondary">' + text + '</div></div>';
+        }
+
         function country(desc) {
             var m = (desc || "").match(/(?:home country of|hailing from|hails from|native of)\s+([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)/);
             if (m) return m[1];
@@ -96,16 +136,20 @@
         function hex(c) { return "#" + String(c || "000000").slice(0, 6); }
 
         /* ---------- Loading ---------- */
-        function init() {
-            res.innerHTML = '<p class="state">Loading Valorant data…</p>';
-            Promise.all([
-                get("agents?isPlayableCharacter=true"), get("bundles"), get("themes"),
-                get("weapons/skins"), get("contenttiers")
-            ]).then(function (d) {
-                S.agents = d[0].sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
-                S.bundles = d[1].filter(function (b) { return b.displayName; });
-                S.themes = d[2]; S.skins = d[3];
-                d[4].forEach(function (t) { S.tiers[t.uuid] = t; });
+        const init = async () => {
+            res.innerHTML = loadingHtml("Loading Valorant data...");
+            try {
+                S.agents = await get("agents?isPlayableCharacter=true");
+                S.bundles = await get("bundles");
+                S.themes = await get("themes");
+                S.skins = await get("weapons/skins");
+                var tierList = await get("contenttiers");
+
+                S.agents.sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
+                S.bundles = S.bundles.filter(function (b) { return b.displayName; });
+                for (var i = 0; i < tierList.length; i++) {
+                    S.tiers[tierList[i].uuid] = tierList[i];
+                }
                 items = S.agents.map(function (a) { return { type: "agent", name: a.displayName, key: norm(a.displayName), icon: a.displayIcon, ref: a }; })
                     .concat(S.bundles.map(function (b) { return { type: "bundle", name: b.displayName, key: norm(b.displayName), icon: b.displayIcon, ref: b }; }));
                 items.forEach(function (it, i) { it.id = i; });
@@ -121,10 +165,9 @@
                     return '<span><b>' + x[0] + '</b>' + x[1] + '</span>';
                 }).join("");
                 home();
-            }).catch(function () {
-                res.innerHTML = '<p class="state">Could not load data from valorant-api.com.<br><button class="tag" id="retry">Try again</button></p>';
-                $("#retry").onclick = init;
-            });
+            } catch (error) {
+                res.innerHTML = '<p class="state">Could not load data from valorant-api.com.<br><button class="tag" onclick="init()">Try again</button></p>';
+            }
         }
 
         function pickRandom(n) {
@@ -141,15 +184,56 @@
         }
         function setFilter(f) {
             S.filter = f;
+            page = 1;
             document.querySelectorAll("#chips .chip").forEach(function (x) { x.classList.toggle("on", x.dataset.f === f); });
         }
+
+        var page = 1;
+        var perPageLoad = 18;
+        var lastPage = 1;
+        var listItems = [];
+
         function listAll(type) {
-            var rows = items.filter(function (i) { return i.type === type && i.icon; });
-            res.innerHTML = '<h3 class="sec text-center"><b>//</b> ' + (type === "agent" ? "AGENTS" : "SKIN BUNDLES") + ' (' + rows.length + ')</h3><div class="row g-2">' +
-                rows.map(function (i) {
-                    return '<div class="col-4 col-sm-3 col-md-2"><button class="pick w-100 h-100" data-id="' + i.id + '"><img src="' + esc(i.icon) + '" alt="" loading="lazy">' + esc(i.name) + '</button></div>';
-                }).join("") + '</div>';
+            listItems = items.filter(function (i) { return i.type === type && i.icon; });
+            lastPage = Math.ceil(listItems.length / perPageLoad);
+            if (page > lastPage) page = 1;
+            var title = type === "agent" ? "AGENTS" : "SKIN BUNDLES";
+            res.innerHTML = '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 mb-2">' +
+                '<h3 class="sec m-0"><b>//</b> ' + title + ' (' + listItems.length + ')</h3>' +
+                '<nav aria-label="Page navigation"><ul class="pagination pagination-sm m-0">' +
+                '<li class="page-item"><a class="page-link" onclick="prev()">Previous</a></li>' +
+                '<li class="page-item"><a class="page-link" id="currentPage">1</a></li>' +
+                '<li class="page-item"><a class="page-link" onclick="next()">Next</a></li>' +
+                '</ul></nav></div><div class="row g-2" id="parent"></div>';
+            getList();
         }
+
+        function getList() {
+            var elParent = document.getElementById("parent");
+            var elCurrentPage = document.getElementById("currentPage");
+            elParent.innerHTML = "";
+            elCurrentPage.innerHTML = page + " / " + lastPage;
+            for (var i = perPageLoad * (page - 1); i < perPageLoad * page && i < listItems.length; i++) {
+                elParent.innerHTML += '<div class="col-4 col-sm-3 col-md-2"><button class="pick w-100 h-100" data-id="' + listItems[i].id + '"><img src="' + esc(listItems[i].icon) + '" alt="" loading="lazy">' + esc(listItems[i].name) + '</button></div>';
+            }
+        }
+
+        function prev() {
+            page -= 1;
+            if (page == 0) {
+                page = lastPage;
+            }
+            getList();
+        }
+
+        function next() {
+            page += 1;
+            if (page > lastPage) {
+                page = 1;
+            }
+            getList();
+        }
+
         function home() {
             main.classList.add("is-home");
             setPageBg("");

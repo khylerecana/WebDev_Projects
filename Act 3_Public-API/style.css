@@ -828,3 +828,26 @@ h2.name {
     animation: none;
   }
 }
+
+/* Pagination (list pages) */
+.pagination {
+  --bs-pagination-color: var(--text);
+  --bs-pagination-bg: var(--panel);
+  --bs-pagination-border-color: #3b1f66;
+  --bs-pagination-hover-color: #fff;
+  --bs-pagination-hover-bg: var(--violet);
+  --bs-pagination-hover-border-color: var(--violet-hi);
+  --bs-pagination-focus-color: #fff;
+  --bs-pagination-focus-bg: var(--violet);
+  --bs-pagination-active-bg: var(--red);
+  --bs-pagination-active-border-color: var(--red);
+}
+.page-link {
+  cursor: pointer;
+  user-select: none;
+}
+#currentPage {
+  min-width: 4.5rem;
+  text-align: center;
+  color: var(--muted);
+}
